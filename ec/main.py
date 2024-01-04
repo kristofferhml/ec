@@ -30,6 +30,7 @@ class Ec(Node):
         
         else:
             reading = self.device.query(READ_CMD)
+            reading = reading.strip()
             reading.data = float(reading)
             self.publisher_.publish(reading)
             self.get_logger().info('Publishing: %d' % reading.data)
