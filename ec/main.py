@@ -7,16 +7,17 @@ from std_msgs.msg import Float32
 
 I2C_ADDRESS = int(os.getenv('I2C_ADDRESS',100))
 READ_CMD = os.getenv('READ_CMD','R')
+NODE_NAME = os.getenv('NODE_NAME','metric')
 
-class Ec(Node):
+class MetricNode(Node):
 
     def __init__(self):
-        super().__init__('ec')
-        self.publisher_ = self.create_publisher(Float32, 'ec', 10)
+        super().__init__(NODE_NAME)
+        self.publisher_ = self.create_publisher(Float32, NODE_NAME, 10)
         timer_period = 3 # seconds
         self.device = utils.get_device(I2C_ADDRESS)
         if (self.device):
-            self.get_logger().info('Starting ec')
+            self.get_logger().info('Starting float metric node')
             self.timer = self.create_timer(timer_period, self.timer_callback)
 
         else:
@@ -29,18 +30,18 @@ class Ec(Node):
             self.get_logger().info('No reponse from probe')
         
         else:
-            reading = self.device.query(READ_CMD)
-            reading = reading.strip()
-            reading.data = float(reading)
+            from_device = self.device.query(READ_CMD)
+            from_device = from_device.strip('\x00')
+            reading.data = float(from_device)
             self.publisher_.publish(reading)
             self.get_logger().info('Publishing: %d' % reading.data)
         
 def main(args=None):
     rclpy.init(args=args)
-    ec = Ec()
-    rclpy.spin(ec)
+    mn = MetricNode()
+    rclpy.spin(mn)
 
-    ec.destroy_node()
+    mn.destroy_node()
     rclpy.shutdown()
 
 if __name__ == '__main__':
