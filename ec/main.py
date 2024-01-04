@@ -11,7 +11,7 @@ READ_CMD = os.getenv('READ_CMD','R')
 class Ec(Node):
 
     def __init__(self):
-        super().__init__('ph')
+        super().__init__('ec')
         self.publisher_ = self.create_publisher(String, 'ec', 10)
         timer_period = 3 # seconds
         self.device = utils.get_device(I2C_ADDRESS)
