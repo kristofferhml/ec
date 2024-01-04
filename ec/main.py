@@ -29,7 +29,8 @@ class Ec(Node):
             self.get_logger().info('No reponse from probe')
         
         else:
-            reading.data = self.device.query(READ_CMD)
+            reading = self.device.query(READ_CMD)
+            reading.data = float(reading)
             self.publisher_.publish(reading)
             self.get_logger().info('Publishing: %d' % reading.data)
         
