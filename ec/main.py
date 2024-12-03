@@ -42,7 +42,8 @@ class MetricNode(Node):
 
             reading.data = moving_average
             self.publisher_.publish(reading)
-            self.get_logger().info('Publishing: %f' % reading.data)
+            self.get_logger().info(f"Current sensor data: {list(self.measurements)}")
+            self.get_logger().info('Publishing: %.2f' % reading.data)
         
 def main(args=None):
     rclpy.init(args=args)
