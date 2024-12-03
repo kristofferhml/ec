@@ -1,6 +1,7 @@
 import rclpy
 import os
 from datetime import datetime
+from collections import deque
 from . import utils
 from rclpy.node import Node
 from std_msgs.msg import Float32
@@ -9,6 +10,7 @@ I2C_ADDRESS = int(os.getenv('I2C_ADDRESS',100))
 METRIC_INTERVAL = int(os.getenv('METRIC_INTERVAL',10))
 READ_CMD = os.getenv('READ_CMD','R')
 NODE_NAME = os.getenv('NODE_NAME','metric')
+WINDOW_SIZE = int(os.getenv('WINDOW_SIZE',5))
 
 class MetricNode(Node):
 
@@ -17,6 +19,8 @@ class MetricNode(Node):
         self.publisher_ = self.create_publisher(Float32, NODE_NAME, 10)
         timer_period = METRIC_INTERVAL # seconds
         self.device = utils.get_device(I2C_ADDRESS)
+        self.measurements = deque(maxlen=WINDOW_SIZE)
+
         if (self.device):
             self.get_logger().info('Starting float metric node')
             self.timer = self.create_timer(timer_period, self.timer_callback)
@@ -33,7 +37,10 @@ class MetricNode(Node):
         else:
             from_device = self.device.query(READ_CMD)
             from_device = from_device.strip('\x00')
-            reading.data = float(from_device)
+            self.measurements.append(float(from_device))
+            moving_average = sum(self.measurements) / len(self.measurements)
+
+            reading.data = moving_average
             self.publisher_.publish(reading)
             self.get_logger().info('Publishing: %f' % reading.data)
         
